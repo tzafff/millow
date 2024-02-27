@@ -29,15 +29,19 @@ function App() {
     setProvider(provider);
 
     const network = await provider.getNetwork();
-
+    console.log(network)
     // Get JS version of NFT contract
     const realEstate = new ethers.Contract(
       config[network.chainId].realEstate.address,
       RealEstate,
       provider
     );
+
+    console.log(realEstate)
     const totalSupply = await realEstate.totalSupply();
     const homes = [];
+
+    console.log(totalSupply)
 
     for (var i = 1; i <= totalSupply; i++) {
       const uri = await realEstate.tokenURI(i);

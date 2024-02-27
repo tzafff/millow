@@ -12,8 +12,9 @@ const tokens = (n) => {
 
 async function main() {
   // Setup accounts
-  const [buyer, seller, inspector, lender] = await ethers.getSigners();
+  //const [buyer, seller, inspector, lender] = await ethers.getSigners();
 
+  const [wallet] = await ethers.getSigners();
   //  Deploy Real Estate
   const RealEstate = await hre.ethers.getContractFactory("RealEstate");
   const realEstate = await RealEstate.deploy();
@@ -24,7 +25,7 @@ async function main() {
 
   for (let i = 0; i < 3; i++) {
     const transaction = await realEstate
-      .connect(seller)
+      .connect(wallet)
       .mint(
         `https://ipfs.io/ipfs/QmQVcpsjrA6cr1iJjZAodYwmPekYgbnXGo4DFubJiLc2EB/${
           i + 1
@@ -36,26 +37,28 @@ async function main() {
   const Escrow = await ethers.getContractFactory("Escrow");
   const escrow = await Escrow.deploy(
     realEstate.address,
-    seller.address,
-    inspector.address,
-    lender.address
+    wallet.address,
+    wallet.address,
+    wallet.address
   );
   await escrow.deployed();
 
+  console.log(`Deployed Escrow Contract at: ${escrow.address}`);
+
   for(let i = 0; i < 3; i++) {
     //  Approve properties...
-    let transaction = await realEstate.connect(seller).approve(escrow.address, i + 1)
+    let transaction = await realEstate.connect(wallet).approve(escrow.address, i + 1)
     await transaction.wait()
   }
 
   // Listing properties...
-  transaction = await escrow.connect(seller).list(1, buyer.address, tokens(20), tokens(10))
+  transaction = await escrow.connect(wallet).list(1, wallet.address, tokens(0.0000015), tokens(10))
   await transaction.wait()
 
-  transaction = await escrow.connect(seller).list(2, buyer.address, tokens(15), tokens(5))
+  transaction = await escrow.connect(wallet).list(2, wallet.address, tokens(0.0000015), tokens(5))
   await transaction.wait()
 
-  transaction = await escrow.connect(seller).list(3, buyer.address, tokens(10), tokens(5))
+  transaction = await escrow.connect(wallet).list(3, wallet.address, tokens(0.0000015), tokens(5))
   await transaction.wait()
 
   console.log(`Finished.`)
